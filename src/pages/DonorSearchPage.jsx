@@ -5,6 +5,7 @@ import api from "../api/apiClient";
 import Select from "../components/UI/Select";
 import Input from "../components/UI/Input";
 import Button from "../components/UI/Button";
+import { useAuth } from "../context/AuthContext";
 
 const BLOOD_GROUP_OPTIONS = [
   { label: "A+", value: "A+" },
@@ -19,7 +20,12 @@ const BLOOD_GROUP_OPTIONS = [
 
 function DonorSearchPage() {
   const navigate = useNavigate();
-  const [filters, setFilters] = useState({ bloodGroup: "", city: "", willing: "true" });
+  const { isAuthenticated, isAdmin } = useAuth();
+  const [filters, setFilters] = useState({
+    bloodGroup: "",
+    city: "",
+    willing: "true",
+  });
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -86,7 +92,7 @@ function DonorSearchPage() {
             ]}
             placeholder="Any"
           />
-          <div className="flex items-end">
+          <div className="flex items-end md:col-span-1">
             <Button className="w-full" onClick={handleSearch}>
               {loading ? "Searching..." : "Search"}
             </Button>
@@ -129,7 +135,7 @@ function DonorSearchPage() {
                   </span>
                 </div>
                 <p className="text-sm text-slate-600 mt-2">
-                  Phone: {d.phone ? d.phone : "Hidden (privacy setting)"}
+                  Phone: {d.phone && (isAuthenticated || isAdmin) ? d.phone : "Hidden (login to view if allowed)"}
                 </p>
                 <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
                   <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700">

@@ -13,6 +13,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import DonorSearchPage from "./pages/DonorSearchPage";
 import RequestsPage from "./pages/RequestsPage";
+import RequestFeedPage from "./pages/RequestFeedPage";
 
 // Wrapper that redirects guests to /login.
 const ProtectedRoute = ({ children }) => {
@@ -103,6 +104,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <RequestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feed"
+            element={
+              <ProtectedRoute>
+                <RequestFeedPage />
               </ProtectedRoute>
             }
           />

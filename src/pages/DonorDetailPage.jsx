@@ -1,5 +1,5 @@
-// DonorDetailPage shows donor information, eligibility, and donation history.
-// Admins can view any donor; owners can view their own if they know the ID.
+// DonorDetailPage shows donor information, eligibility, donation history, and contact form.
+// Admins can view any donor; owners can view their own via ID; others may be restricted by backend.
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/apiClient";
@@ -11,7 +11,7 @@ function InfoRow({ label, value }) {
   return (
     <div className="flex justify-between text-sm">
       <span className="text-slate-500">{label}</span>
-      <span className="font-medium text-slate-900">{value || "—"}</span>
+      <span className="font-medium text-slate-900">{value || "N/A"}</span>
     </div>
   );
 }
@@ -32,6 +32,8 @@ function DonorDetailPage() {
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactStatus, setContactStatus] = useState("");
 
   // Load donor details, eligibility, history, and institutions.
   useEffect(() => {
@@ -50,11 +52,11 @@ function DonorDetailPage() {
         setInstitutions(institutionsRes.data.data || []);
       } catch (err) {
         console.error("Failed to load donor details", err);
-        const message =
+        const msg =
           err.response?.status === 403
             ? "You do not have permission to view this donor."
             : "Could not load donor information.";
-        setError(message);
+        setError(msg);
       } finally {
         setLoading(false);
       }
@@ -95,6 +97,19 @@ function DonorDetailPage() {
       const msg =
         err.response?.data?.message || "Could not record donation. Please check eligibility.";
       setError(msg);
+    }
+  };
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setContactStatus("");
+    try {
+      await api.post("/contact", { donorId: id, message: contactMessage });
+      setContactStatus("Message sent to donor.");
+      setContactMessage("");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Could not send message.";
+      setContactStatus(msg);
     }
   };
 
@@ -148,12 +163,18 @@ function DonorDetailPage() {
           <InfoRow label="Emergency Contact" value={donor.emergencyContactName} />
           <InfoRow label="Emergency Phone" value={donor.emergencyContactPhone} />
           <InfoRow label="Willing" value={donor.willingToDonate ? "Yes" : "No"} />
+          <InfoRow label="Contact allowed" value={donor.allowRequestContact ? "Yes" : "No"} />
+          <InfoRow label="Contact preference" value={donor.contactPreference} />
           <InfoRow label="Total Donations" value={donor.totalDonations || 0} />
           <InfoRow
             label="Last Donation"
             value={
               donor.lastDonationDate ? new Date(donor.lastDonationDate).toLocaleDateString() : "None"
             }
+          />
+          <InfoRow
+            label="Deferral until"
+            value={donor.deferralUntil ? new Date(donor.deferralUntil).toLocaleDateString() : "None"}
           />
         </div>
 
@@ -228,19 +249,41 @@ function DonorDetailPage() {
               <tbody>
                 {donations.map((d) => (
                   <tr key={d._id} className="border-t border-slate-100">
-                    <td className="px-3 py-2">
-                      {new Date(d.donationDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-3 py-2">{d.institution?.name || "—"}</td>
+                    <td className="px-3 py-2">{new Date(d.donationDate).toLocaleDateString()}</td>
+                    <td className="px-3 py-2">{d.institution?.name || "N/A"}</td>
                     <td className="px-3 py-2">{d.units || 1}</td>
-                    <td className="px-3 py-2">{d.location || "—"}</td>
-                    <td className="px-3 py-2">{d.notes || "—"}</td>
+                    <td className="px-3 py-2">{d.location || "N/A"}</td>
+                    <td className="px-3 py-2">{d.notes || "N/A"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">Contact Donor</h2>
+        <p className="text-sm text-slate-600 mb-2">
+          Send a message without exposing phone/email. Donor contact preference:{" "}
+          {donor.contactPreference || "message"}. Contact allowed:{" "}
+          {donor.allowRequestContact ? "Yes" : "No"}.
+        </p>
+        <form className="space-y-3" onSubmit={handleContactSubmit}>
+          <Input
+            label="Message"
+            name="contactMessage"
+            value={contactMessage}
+            onChange={(e) => setContactMessage(e.target.value)}
+            placeholder="Explain your request and how to reach you."
+          />
+          <Button type="submit" className="w-full" disabled={!donor.allowRequestContact}>
+            Send Message
+          </Button>
+        </form>
+        {contactStatus ? (
+          <p className="text-sm text-slate-700 mt-2">{contactStatus}</p>
+        ) : null}
       </div>
     </div>
   );

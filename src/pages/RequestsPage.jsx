@@ -1,11 +1,11 @@
-// RequestsPage handles blood requests creation, listing, and donor matches with detail view.
-import { useEffect, useState } from "react";
+// RequestsPage handles blood requests creation, listing, and donor matches with inline detail view.
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../api/apiClient";
 import { useAuth } from "../context/AuthContext";
 import Button from "../components/UI/Button";
 import Input from "../components/UI/Input";
 import Select from "../components/UI/Select";
-import { useNavigate } from "react-router-dom";
 
 const BLOOD_GROUP_OPTIONS = [
   { label: "A+", value: "A+" },
@@ -21,12 +21,16 @@ const BLOOD_GROUP_OPTIONS = [
 function RequestsPage() {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const matchesSectionRef = useRef(null);
+
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [matches, setMatches] = useState([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
+  const [selectedRequest, setSelectedRequest] = useState(null);
   const [selectedDonor, setSelectedDonor] = useState(null);
   const [form, setForm] = useState({
     bloodGroup: "",
@@ -57,6 +61,14 @@ function RequestsPage() {
     loadRequests();
   }, []);
 
+  // If focus query param is present, auto-load matches for that request after requests load.
+  useEffect(() => {
+    const focusId = searchParams.get("focus");
+    if (focusId && requests.length > 0) {
+      handleViewMatches(focusId);
+    }
+  }, [searchParams, requests]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -67,8 +79,17 @@ function RequestsPage() {
     setError("");
     try {
       const res = await api.post("/requests", form);
-      setSelectedRequestId(res.data.data?.request?._id || null);
-      setMatches(res.data.data?.matches || res.data.matches || []);
+      const payload = res.data?.data || {};
+      const payloadMatches = payload.matches || payload.safeDonors || res.data?.matches || [];
+      const reqData = payload.request || null;
+      setSelectedRequestId(reqData?._id || null);
+      setSelectedRequest(reqData);
+      const matchArray = Array.isArray(payloadMatches)
+        ? payloadMatches
+        : Array.isArray(payloadMatches?.safeDonors)
+        ? payloadMatches.safeDonors
+        : [];
+      setMatches(matchArray);
       setSelectedDonor(null);
       setForm({
         bloodGroup: "",
@@ -81,6 +102,9 @@ function RequestsPage() {
         notes: "",
       });
       loadRequests();
+      if (matchesSectionRef.current) {
+        matchesSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } catch (err) {
       const msg = err.response?.data?.message || "Could not create request.";
       setError(msg);
@@ -100,9 +124,22 @@ function RequestsPage() {
     try {
       setMatchesLoading(true);
       setSelectedRequestId(id);
+      const reqObj = requests.find((r) => r._id === id) || null;
+      setSelectedRequest(reqObj);
       const res = await api.get(`/requests/${id}/matches`);
-      setMatches(res.data.data || res.data.matches || []);
+      const payload = res.data?.data || {};
+      const payloadMatches = payload.safeDonors || payload.matches || payload || [];
+      setMatches(
+        Array.isArray(payloadMatches)
+          ? payloadMatches
+          : Array.isArray(payloadMatches?.safeDonors)
+          ? payloadMatches.safeDonors
+          : []
+      );
       setSelectedDonor(null);
+      if (matchesSectionRef.current) {
+        matchesSectionRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     } catch (err) {
       alert("Could not fetch matches.");
     } finally {
@@ -199,14 +236,18 @@ function RequestsPage() {
           <h2 className="text-lg font-semibold text-slate-900">Requests</h2>
           {loading ? <span className="text-sm text-slate-500">Loading...</span> : null}
         </div>
-        {requests.length === 0 ? (
+        {error ? (
+          <p className="text-sm text-red-500">{error}</p>
+        ) : requests.length === 0 ? (
           <p className="text-sm text-slate-600">No requests yet.</p>
         ) : (
           <div className="space-y-3">
             {requests.map((req) => (
               <div
                 key={req._id}
-                className="p-4 rounded-lg border border-slate-200 flex flex-col gap-2"
+                className={`p-4 rounded-lg border flex flex-col gap-2 ${
+                  selectedRequestId === req._id ? "border-red-300 bg-red-50/50" : "border-slate-200"
+                }`}
               >
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
@@ -253,15 +294,27 @@ function RequestsPage() {
         )}
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4">
+      <div
+        ref={matchesSectionRef}
+        className="bg-white border border-slate-200 rounded-xl shadow-sm p-4"
+      >
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-semibold text-slate-900">Matches</h2>
+          <div>
+            <p className="text-xs text-slate-500">Matches</p>
+            <h2 className="text-lg font-semibold text-slate-900">
+              {selectedRequest
+                ? `For ${selectedRequest.bloodGroup} in ${selectedRequest.city} (${selectedRequest.unitsNeeded} unit${
+                    selectedRequest.unitsNeeded > 1 ? "s" : ""
+                  })`
+                : "Select a request to view matches"}
+            </h2>
+          </div>
           <span className="text-sm text-slate-500">
-            {matchesLoading ? "Loading..." : `${matches.length} match(es)`}{" "}
-            {selectedRequestId ? "· for selected request" : ""}
+            {matchesLoading ? "Loading..." : `${Array.isArray(matches) ? matches.length : 0} match(es)`}{" "}
+            {selectedRequestId ? "for selected request" : ""}
           </span>
         </div>
-        {matches.length === 0 ? (
+        {!Array.isArray(matches) || matches.length === 0 ? (
           <p className="text-sm text-slate-600">
             {matchesLoading ? "Looking up donors..." : "No matches yet. Create or select a request."}
           </p>
@@ -271,10 +324,7 @@ function RequestsPage() {
               <button
                 key={m._id || m.id}
                 type="button"
-                onClick={() => {
-                  const donorId = m._id || m.id;
-                  navigate(`/donors/${donorId}`);
-                }}
+                onClick={() => setSelectedDonor(m)}
                 className="text-left p-3 rounded-lg border border-slate-100 bg-slate-50 hover:border-red-200 hover:shadow-sm transition"
               >
                 <p className="text-lg font-semibold text-slate-900">{m.fullName}</p>

@@ -37,6 +37,9 @@ function Navbar() {
           </NavLink>
           {isAuthenticated ? (
             <>
+              <NavLink to="/feed" className={navLinkClass}>
+                Help Requests
+              </NavLink>
               <NavLink to="/requests" className={navLinkClass}>
                 Requests
               </NavLink>

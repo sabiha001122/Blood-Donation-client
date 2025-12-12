@@ -27,10 +27,17 @@ function DonorForm({ initialValues = {}, onSubmit, onCancel, allowUserId = false
     bloodGroup: initialValues.bloodGroup || "",
     address: {
       city: initialValues.address?.city || "",
+      lat: initialValues.address?.lat || "",
+      lng: initialValues.address?.lng || "",
     },
     willingToDonate: initialValues.willingToDonate ?? true,
     visibility: initialValues.visibility || "public",
     phoneVisibility: initialValues.phoneVisibility || "public",
+    allowRequestContact: initialValues.allowRequestContact ?? true,
+    contactPreference: initialValues.contactPreference || "message",
+    deferralUntil: initialValues.deferralUntil
+      ? initialValues.deferralUntil.split("T")[0]
+      : "",
     notes: initialValues.notes || "",
   });
 
@@ -113,6 +120,20 @@ function DonorForm({ initialValues = {}, onSubmit, onCancel, allowUserId = false
           onChange={handleAddressChange}
           placeholder="Dhaka"
         />
+        <Input
+          label="Latitude (optional)"
+          name="lat"
+          value={formData.address.lat}
+          onChange={handleAddressChange}
+          placeholder="e.g., 23.7809"
+        />
+        <Input
+          label="Longitude (optional)"
+          name="lng"
+          value={formData.address.lng}
+          onChange={handleAddressChange}
+          placeholder="e.g., 90.4071"
+        />
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -189,6 +210,41 @@ function DonorForm({ initialValues = {}, onSubmit, onCancel, allowUserId = false
         value={formData.notes}
         onChange={handleChange}
         placeholder="Any notes..."
+      />
+
+      <div className="flex items-center gap-2">
+        <input
+          id="allowRequestContact"
+          type="checkbox"
+          checked={formData.allowRequestContact}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, allowRequestContact: e.target.checked }))
+          }
+          className="h-4 w-4 text-red-500 border-slate-300 rounded"
+        />
+        <label htmlFor="allowRequestContact" className="text-sm text-slate-700">
+          Allow others to contact me for requests
+        </label>
+      </div>
+
+      <Select
+        label="Contact Preference"
+        name="contactPreference"
+        value={formData.contactPreference}
+        onChange={handleChange}
+        options={[
+          { label: "Via system message", value: "message" },
+          { label: "Phone", value: "phone" },
+          { label: "Email", value: "email" },
+        ]}
+      />
+
+      <Input
+        label="Deferral until (optional)"
+        name="deferralUntil"
+        type="date"
+        value={formData.deferralUntil}
+        onChange={handleChange}
       />
 
       <div className="flex gap-3">
