@@ -12,7 +12,7 @@ function Select({ label, name, value, onChange, options = [], placeholder = "Sel
         name={name}
         value={value}
         onChange={onChange}
-        className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-red-500"
+        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white/90 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f3b37a] focus:border-[#e1473b]"
         {...rest}
       >
         <option value="">{placeholder}</option>

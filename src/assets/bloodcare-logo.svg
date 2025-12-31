@@ -1,0 +1,17 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="drop" x1="16" y1="6" x2="50" y2="54" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D62828"/>
+      <stop offset="0.55" stop-color="#E1473B"/>
+      <stop offset="1" stop-color="#F08C3B"/>
+    </linearGradient>
+  </defs>
+  <path
+    d="M32 5C25 15 18 25 18 35C18 44.4 24.9 51 32 51C39.1 51 46 44.4 46 35C46 25 39 15 32 5Z"
+    fill="url(#drop)"
+  />
+  <path
+    d="M31 24H33V30H39V32H33V38H31V32H25V30H31V24Z"
+    fill="#FFFFFF"
+  />
+</svg>

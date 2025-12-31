@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Layout/Navbar";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
@@ -11,9 +11,11 @@ import NotFoundPage from "./pages/NotFoundPage";
 import { useAuth } from "./context/AuthContext";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminReportsPage from "./pages/admin/AdminReportsPage";
 import DonorSearchPage from "./pages/DonorSearchPage";
 import RequestsPage from "./pages/RequestsPage";
 import RequestFeedPage from "./pages/RequestFeedPage";
+import InboxPage from "./pages/InboxPage";
 
 // Wrapper that redirects guests to /login.
 const ProtectedRoute = ({ children }) => {
@@ -54,10 +56,19 @@ const AdminRoute = ({ children }) => {
 };
 
 function App() {
+  const location = useLocation();
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200">
+    <div className="min-h-screen text-slate-900">
       <Navbar />
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main
+        className={
+          isAuthPage
+            ? "w-full px-0 py-0"
+            : "max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-10"
+        }
+      >
         <Routes>
           <Route
             path="/"
@@ -115,6 +126,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/inbox"
+            element={
+              <ProtectedRoute>
+                <InboxPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/search" element={<DonorSearchPage />} />
           <Route
             path="/admin"
@@ -129,6 +148,14 @@ function App() {
             element={
               <AdminRoute>
                 <AdminUsersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <AdminRoute>
+                <AdminReportsPage />
               </AdminRoute>
             }
           />

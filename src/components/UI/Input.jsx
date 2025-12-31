@@ -25,7 +25,7 @@ function Input({
         onChange={onChange}
         placeholder={placeholder}
         required={required}
-        className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-red-500 bg-white shadow-sm ${
+        className={`w-full rounded-xl border px-3 py-2 text-sm bg-white/90 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f3b37a] focus:border-[#e1473b] ${
           error ? "border-red-400" : "border-slate-200"
         }`}
         {...rest}

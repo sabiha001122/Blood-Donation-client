@@ -203,7 +203,7 @@ function InstitutionsPage() {
                   <tr key={i._id} className="border-t border-slate-100">
                     <td className="px-3 py-2 font-medium text-slate-900">{i.name}</td>
                     <td className="px-3 py-2 capitalize">{i.type}</td>
-                    <td className="px-3 py-2">{i.address?.city || "—"}</td>
+                    <td className="px-3 py-2">{i.address?.city || "N/A"}</td>
                     <td className="px-3 py-2">{i.totalDonations || 0}</td>
                     {isAdmin ? (
                       <td className="px-3 py-2 text-right space-x-2">

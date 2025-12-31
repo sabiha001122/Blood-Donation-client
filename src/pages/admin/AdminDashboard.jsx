@@ -7,7 +7,8 @@ const cards = [
   { title: "Add Donor", to: "/donors", description: "Create and manage donors." },
   { title: "Add Institution", to: "/institutions", description: "Manage hospitals and clinics." },
   { title: "View Donations", to: "/donations", description: "See all recorded donations." },
-  { title: "User Management", to: "/admin/users", description: "Promote or remove users." },
+  { title: "User Management", to: "/admin/users", description: "Promote, deactivate, or review users." },
+  { title: "Reports & Audit", to: "/admin/reports", description: "Export data and review audit logs." },
 ];
 
 function Stat({ label, value }) {
@@ -33,7 +34,7 @@ function AdminDashboard() {
     const loadStats = async () => {
       try {
         const [usersRes, donorsRes, donationsRes, institutionsRes] = await Promise.all([
-          api.get("/users").catch(() => ({ data: { data: [] } })), // fallback if endpoint missing
+          api.get("/users").catch(() => ({ data: { data: [] } })),
           api.get("/donors"),
           api.get("/donations"),
           api.get("/institutions"),
@@ -66,10 +67,10 @@ function AdminDashboard() {
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
-        <Stat label="Users" value={loading ? "…" : stats.users} />
-        <Stat label="Donors" value={loading ? "…" : stats.donors} />
-        <Stat label="Donations" value={loading ? "…" : stats.donations} />
-        <Stat label="Institutions" value={loading ? "…" : stats.institutions} />
+        <Stat label="Users" value={loading ? "..." : stats.users} />
+        <Stat label="Donors" value={loading ? "..." : stats.donors} />
+        <Stat label="Donations" value={loading ? "..." : stats.donations} />
+        <Stat label="Institutions" value={loading ? "..." : stats.institutions} />
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -82,7 +83,7 @@ function AdminDashboard() {
             <h3 className="text-lg font-semibold text-slate-900">{card.title}</h3>
             <p className="text-sm text-slate-600 mt-1">{card.description}</p>
             <span className="inline-flex items-center mt-3 text-sm text-red-600 font-semibold">
-              Go <span className="ml-1">→</span>
+              Go <span className="ml-1">-&gt;</span>
             </span>
           </Link>
         ))}

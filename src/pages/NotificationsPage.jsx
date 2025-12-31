@@ -100,8 +100,12 @@ function NotificationsPage() {
                 {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
               </p>
               <div className="flex items-center gap-2 mt-2">
-                {n.meta?.requestId ? (
-                  <Button size="sm" variant="secondary" onClick={() => viewRequest(n.meta.requestId)}>
+                {n.meta?.requestId || n.meta?.request?.id ? (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => viewRequest(n.meta?.requestId || n.meta?.request?.id)}
+                  >
                     View request
                   </Button>
                 ) : null}
@@ -120,6 +124,39 @@ function NotificationsPage() {
                   </Button>
                 ) : null}
               </div>
+              {n.meta?.request ? (
+                <div className="mt-2 text-sm text-slate-700 space-y-1">
+                  <p>
+                    Request: {n.meta.request.bloodGroup || ""} -{" "}
+                    {n.meta.request.unitsNeeded || 0} unit(s) - {n.meta.request.city || "N/A"}
+                  </p>
+                  {n.meta.request.hospital ? <p>Hospital: {n.meta.request.hospital}</p> : null}
+                  {n.meta.request.patientName ? <p>Patient: {n.meta.request.patientName}</p> : null}
+                  {n.meta.request.requiredDate ? (
+                    <p>Needed on: {new Date(n.meta.request.requiredDate).toLocaleDateString()}</p>
+                  ) : null}
+                  {n.meta.request.contactPhone ? <p>Requester phone: {n.meta.request.contactPhone}</p> : null}
+                </div>
+              ) : null}
+              {n.meta?.donor ? (
+                <div className="mt-2 text-sm text-slate-700 space-y-1">
+                  <p>
+                    Donor: {n.meta.donor.fullName || ""} - {n.meta.donor.bloodGroup || ""} -{" "}
+                    {n.meta.donor.city || ""}
+                  </p>
+                  {n.meta.donor.phone ? <p>Phone: {n.meta.donor.phone}</p> : null}
+                  {n.meta.donor.email ? <p>Email: {n.meta.donor.email}</p> : null}
+                  {n.meta.donor.emergencyContactName ? (
+                    <p>
+                      Emergency: {n.meta.donor.emergencyContactName} (
+                      {n.meta.donor.emergencyContactPhone || ""})
+                    </p>
+                  ) : null}
+                  {n.meta.donor.contactPreference ? (
+                    <p>Prefers: {n.meta.donor.contactPreference}</p>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           ))}
         </div>

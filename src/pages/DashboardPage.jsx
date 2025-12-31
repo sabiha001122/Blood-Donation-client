@@ -235,15 +235,23 @@ function DashboardPage() {
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {myRequests.slice(0, 5).map((req) => (
-                    <li key={req._id} className="py-2">
-                      <p className="font-medium text-slate-900">
-                        {req.bloodGroup} · {req.city} ({req.unitsNeeded} unit)
-                      </p>
-                      <p className="text-xs text-slate-600">
-                        Required:{" "}
-                        {req.requiredDate ? new Date(req.requiredDate).toLocaleDateString() : "N/A"} ·{" "}
-                        Status: {req.status}
-                      </p>
+                    <li key={req._id} className="py-2 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-slate-900">
+                          {req.bloodGroup} - {req.city} ({req.unitsNeeded} unit)
+                        </p>
+                        <p className="text-xs text-slate-600">
+                          Required:{" "}
+                          {req.requiredDate ? new Date(req.requiredDate).toLocaleDateString() : "N/A"} -{" "}
+                          Status: {req.status}
+                        </p>
+                      </div>
+                      <Link
+                        to={`/requests?focus=${req._id}`}
+                        className="text-xs text-red-600 hover:text-red-700 font-semibold"
+                      >
+                        View
+                      </Link>
                     </li>
                   ))}
                 </ul>

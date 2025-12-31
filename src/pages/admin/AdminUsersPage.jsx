@@ -6,9 +6,26 @@ import { useAuth } from "../../context/AuthContext";
 
 function AdminUsersPage() {
   const { user: currentUser } = useAuth();
+  const currentUserId = currentUser?._id || currentUser?.id;
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const setUserStatus = async (id, isActive) => {
+    const label = isActive ? "activate" : "deactivate";
+    const confirmed = isActive
+      ? true
+      : window.confirm("Deactivate this user? They will not be able to log in.");
+    if (!confirmed) return;
+
+    try {
+      await api.put(`/users/${id}/status`, { isActive });
+      loadUsers();
+    } catch (err) {
+      console.error(`Failed to ${label} user`, err);
+      alert(`Could not ${label} user. Please verify backend support.`);
+    }
+  };
 
   const loadUsers = async () => {
     setLoading(true);
@@ -38,16 +55,12 @@ function AdminUsersPage() {
     }
   };
 
-  const deleteUser = async (id) => {
-    const confirmed = window.confirm("Delete this user? This action cannot be undone.");
-    if (!confirmed) return;
-    try {
-      await api.delete(`/users/${id}`);
-      loadUsers();
-    } catch (err) {
-      console.error("Failed to delete user", err);
-      alert("Could not delete user. Please verify backend support.");
-    }
+  const getAvatarUrl = (user) => {
+    const seed = user?.name || user?.email || "User";
+    return (
+      user?.profilePicture ||
+      `https://i.pravatar.cc/150?u=${encodeURIComponent(seed)}`
+    );
   };
 
   return (
@@ -69,6 +82,7 @@ function AdminUsersPage() {
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Role</th>
+              <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Joined</th>
               <th className="px-4 py-3"></th>
             </tr>
@@ -76,14 +90,24 @@ function AdminUsersPage() {
           <tbody>
             {users.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-slate-600" colSpan="5">
+                <td className="px-4 py-4 text-slate-600" colSpan="6">
                   {loading ? "Loading users..." : "No users found."}
                 </td>
               </tr>
             ) : (
               users.map((u) => (
                 <tr key={u._id} className="border-t border-slate-100">
-                  <td className="px-4 py-3 font-medium text-slate-900">{u.name}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={getAvatarUrl(u)}
+                        alt={u.name ? `${u.name} profile` : "User profile"}
+                        className="h-9 w-9 rounded-full object-cover border border-slate-200"
+                        loading="lazy"
+                      />
+                      <span className="font-medium text-slate-900">{u.name}</span>
+                    </div>
+                  </td>
                   <td className="px-4 py-3">{u.email}</td>
                   <td className="px-4 py-3">
                     <span
@@ -97,7 +121,18 @@ function AdminUsersPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "—"}
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        u.isActive === false
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {u.isActive === false ? "Disabled" : "Active"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "N/A"}
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
                     {u.role !== "admin" ? (
@@ -108,12 +143,12 @@ function AdminUsersPage() {
                         Promote to Admin
                       </button>
                     ) : null}
-                    {currentUser?._id !== u._id ? (
+                    {currentUserId !== u._id ? (
                       <button
-                        onClick={() => deleteUser(u._id)}
+                        onClick={() => setUserStatus(u._id, u.isActive === false)}
                         className="text-sm text-slate-500 hover:text-slate-700"
                       >
-                        Delete
+                        {u.isActive === false ? "Activate" : "Deactivate"}
                       </button>
                     ) : null}
                   </td>
