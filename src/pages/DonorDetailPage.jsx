@@ -160,7 +160,10 @@ function DonorDetailPage() {
               <InfoRow label="Emergency Contact" value={donor.emergencyContactName} />
               <InfoRow label="Emergency Phone" value={donor.emergencyContactPhone} />
               <InfoRow label="Willing" value={donor.willingToDonate ? "Yes" : "No"} />
-              <InfoRow label="Contact allowed" value={donor.allowRequestContact ? "Yes" : "No"} />
+              <InfoRow
+                label="Contact allowed"
+                value={donor.allowRequestContact === false ? "No" : "Yes"}
+              />
               <InfoRow label="Total Donations" value={donor.totalDonations || 0} />
               <InfoRow
                 label="Last Donation"
@@ -276,7 +279,7 @@ function DonorDetailPage() {
             <h2 className="text-lg font-semibold text-slate-900 mb-3">Contact Donor</h2>
             <p className="text-sm text-slate-600 mb-2">
               Send a message without exposing phone/email. Donor contact preference: {donor.contactPreference || "message"}.
-              Contact allowed: {donor.allowRequestContact ? "Yes" : "No"}.
+              Contact allowed: {donor.allowRequestContact === false ? "No" : "Yes"}.
             </p>
             <form className="space-y-3" onSubmit={handleContactSubmit}>
               <Input
@@ -286,7 +289,11 @@ function DonorDetailPage() {
                 onChange={(e) => setContactMessage(e.target.value)}
                 placeholder="Explain your request and how to reach you."
               />
-              <Button type="submit" className="w-full" disabled={!donor.allowRequestContact}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={donor.allowRequestContact === false}
+              >
                 Send Message
               </Button>
             </form>

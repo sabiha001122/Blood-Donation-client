@@ -31,6 +31,7 @@ function InboxPage() {
     if (!activeChat) return false;
     return (activeChat.pausedBy || []).length > 0;
   }, [activeChat]);
+  const isContactChat = activeChat?.type === "contact";
 
   const loadChats = async () => {
     setLoadingChats(true);
@@ -143,8 +144,9 @@ function InboxPage() {
                       {other.name || "User"} {other.email ? `(${other.email})` : ""}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {chat.request?.bloodGroup || ""} · {chat.request?.city || "Unknown"} ·{" "}
-                      {chat.request?.status || "open"}
+                      {chat.type === "contact"
+                        ? `Donor contact${chat.donor?.bloodGroup ? ` | ${chat.donor.bloodGroup}` : ""}${chat.donor?.city ? ` | ${chat.donor.city}` : ""}`
+                        : `${chat.request?.bloodGroup || ""} | ${chat.request?.city || "Unknown"} | ${chat.request?.status || "open"}`}
                     </p>
                     {chat.lastMessage?.text ? (
                       <p className="text-xs text-slate-600 mt-1 line-clamp-1">
@@ -167,30 +169,33 @@ function InboxPage() {
                     {otherParticipant?.name || "Chat"}
                   </h2>
                   <p className="text-xs text-slate-500">
-                    {activeChat.request?.bloodGroup || ""} · {activeChat.request?.city || ""} ·{" "}
-                    {activeChat.request?.unitsNeeded || 0} unit(s)
+                    {isContactChat
+                      ? `Contacting donor${activeChat.donor?.bloodGroup ? ` | ${activeChat.donor.bloodGroup}` : ""}${activeChat.donor?.city ? ` | ${activeChat.donor.city}` : ""}`
+                      : `${activeChat.request?.bloodGroup || ""} | ${activeChat.request?.city || ""} | ${activeChat.request?.unitsNeeded || 0} unit(s)`}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  {isPaused ? (
-                    <button
-                      onClick={handleResume}
-                      className="px-3 py-2 rounded-md text-sm border border-slate-200 text-slate-700 hover:bg-slate-100"
-                    >
-                      Resume chat
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handlePause}
-                      className="px-3 py-2 rounded-md text-sm border border-slate-200 text-slate-700 hover:bg-slate-100"
-                    >
-                      Pause chat
-                    </button>
-                  )}
-                </div>
+                {!isContactChat ? (
+                  <div className="flex items-center gap-2">
+                    {isPaused && !isContactChat ? (
+                      <button
+                        onClick={handleResume}
+                        className="px-3 py-2 rounded-md text-sm border border-slate-200 text-slate-700 hover:bg-slate-100"
+                      >
+                        Resume chat
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handlePause}
+                        className="px-3 py-2 rounded-md text-sm border border-slate-200 text-slate-700 hover:bg-slate-100"
+                      >
+                        Pause chat
+                      </button>
+                    )}
+                  </div>
+                ) : null}
               </div>
 
-              {isPaused ? (
+              {isPaused && !isContactChat ? (
                 <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-3 mb-3">
                   This chat is paused. Resume to continue messaging.
                 </p>
